@@ -6,9 +6,17 @@ export class FooterController {
    * @return {[type]}
    */
   /*@ngInject*/
-  constructor($scope){
+  constructor($scope) {
+    this.$scope = $scope;
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+
+  }
+
+  $onInit() {
     this.page = this.paging.offset + 1;
-    $scope.$watch('footer.paging.offset', (newVal) => {
+    this.$scope.$watch('footer.paging.offset', (newVal) => {
       this.offsetChanged(newVal)
     });
   }
@@ -17,7 +25,7 @@ export class FooterController {
    * The offset ( page ) changed externally, update the page
    * @param  {new offset}
    */
-  offsetChanged(newVal){
+  offsetChanged(newVal) {
     this.page = newVal + 1;
   }
 
@@ -25,7 +33,7 @@ export class FooterController {
    * The pager was invoked
    * @param  {scope}
    */
-  onPaged(page){
+  onPaged(page) {
     this.paging.offset = page - 1;
     this.onPage({
       offset: this.paging.offset,

@@ -44,23 +44,30 @@ class PagerController {
    * @param  {object} $scope   
    */
   /*@ngInject*/
-  constructor($scope){
-    $scope.$watch('pager.count', (newVal) => {
+  constructor($scope) {
+    this.$scope = $scope;
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+  }
+
+  $onInit() {
+    this.$scope.$watch('pager.count', (newVal) => {
       this.calcTotalPages(this.size, this.count);
       this.getPages(this.page || 1);
     });
 
-    $scope.$watch('pager.size', (newVal) => {
+    this.$scope.$watch('pager.size', (newVal) => {
       this.calcTotalPages(this.size, this.count);
       this.getPages(this.page || 1);
     });
 
-    $scope.$watch('pager.page', (newVal) => {
+    this.$scope.$watch('pager.page', (newVal) => {
       if (newVal !== 0 && newVal <= this.totalPages) {
         this.getPages(newVal);
       }
     });
-    
+
     this.getPages(this.page || 1);
   }
 
@@ -77,7 +84,7 @@ class PagerController {
    * Select a page
    * @param  {int} num   
    */
-  selectPage(num){
+  selectPage(num) {
     if (num > 0 && num <= this.totalPages) {
       this.page = num;
       this.onPage({
@@ -89,7 +96,7 @@ class PagerController {
   /**
    * Selects the previous pager
    */
-  prevPage(){
+  prevPage() {
     if (this.page > 1) {
       this.selectPage(--this.page);
     }
@@ -98,7 +105,7 @@ class PagerController {
   /**
    * Selects the next page
    */
-  nextPage(){
+  nextPage() {
     this.selectPage(++this.page);
   }
 
@@ -106,7 +113,7 @@ class PagerController {
    * Determines if the pager can go previous
    * @return {boolean}
    */
-  canPrevious(){
+  canPrevious() {
     return this.page > 1;
   }
 
@@ -114,7 +121,7 @@ class PagerController {
    * Determines if the pager can go forward
    * @return {boolean}       
    */
-  canNext(){
+  canNext() {
     return this.page < this.totalPages;
   }
 
@@ -124,10 +131,10 @@ class PagerController {
    */
   getPages(page) {
     var pages = [],
-        startPage = 1, 
-        endPage = this.totalPages,
-        maxSize = 5,
-        isMaxSized = maxSize < this.totalPages;
+      startPage = 1,
+      endPage = this.totalPages,
+      maxSize = 5,
+      isMaxSized = maxSize < this.totalPages;
 
     if (isMaxSized) {
       startPage = ((Math.ceil(page / maxSize) - 1) * maxSize) + 1;
@@ -209,9 +216,17 @@ class FooterController {
    * @return {[type]}
    */
   /*@ngInject*/
-  constructor($scope){
+  constructor($scope) {
+    this.$scope = $scope;
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+
+  }
+
+  $onInit() {
     this.page = this.paging.offset + 1;
-    $scope.$watch('footer.paging.offset', (newVal) => {
+    this.$scope.$watch('footer.paging.offset', (newVal) => {
       this.offsetChanged(newVal)
     });
   }
@@ -220,7 +235,7 @@ class FooterController {
    * The offset ( page ) changed externally, update the page
    * @param  {new offset}
    */
-  offsetChanged(newVal){
+  offsetChanged(newVal) {
     this.page = newVal + 1;
   }
 
@@ -228,7 +243,7 @@ class FooterController {
    * The pager was invoked
    * @param  {scope}
    */
-  onPaged(page){
+  onPaged(page) {
     this.paging.offset = page - 1;
     this.onPage({
       offset: this.paging.offset,
@@ -1024,19 +1039,25 @@ function ScrollerDirective($timeout, $rootScope){
   };
 }
 
-class BodyController{
+class BodyController {
 
   /**
    * A tale body controller
    * @param  {$scope}
-   * @param  {$timeout}
    * @return {BodyController}
    */
   /*@ngInject*/
-  constructor($scope, $timeout){
+  constructor($scope) {
     this.$scope = $scope;
     this.tempRows = [];
 
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+
+  }
+
+  $onInit() {
     this.treeColumn = this.options.columns.find((c) => {
       return c.isTreeColumn;
     });
@@ -1045,24 +1066,24 @@ class BodyController{
       return c.group;
     });
 
-    $scope.$watchCollection('body.rows', this.rowsUpdated.bind(this));
+    this.$scope.$watchCollection('body.rows', this.rowsUpdated.bind(this));
 
-    if(this.options.scrollbarV || (!this.options.scrollbarV && this.options.paging.externalPaging)){
+    if (this.options.scrollbarV || (!this.options.scrollbarV && this.options.paging.externalPaging)) {
       var sized = false;
-      $scope.$watch('body.options.paging.size', (newVal, oldVal) => {
-        if(!sized || newVal > oldVal){
+      this.$scope.$watch('body.options.paging.size', (newVal, oldVal) => {
+        if (!sized || newVal > oldVal) {
           this.getRows();
           sized = true;
         }
       });
 
-      $scope.$watch('body.options.paging.count', (count) => {
+      this.$scope.$watch('body.options.paging.count', (count) => {
         this.count = count;
         this.updatePage();
       });
 
-      $scope.$watch('body.options.paging.offset', (newVal) => {
-        if(this.options.paging.size){
+      this.$scope.$watch('body.options.paging.offset', (newVal) => {
+        if (this.options.paging.size) {
           this.onPage({
             offset: newVal,
             size: this.options.paging.size
@@ -1070,21 +1091,22 @@ class BodyController{
         }
       });
     }
+
   }
 
-  rowsUpdated(newVal, oldVal){
-    if(newVal) {
-      if(!this.options.paging.externalPaging){
+  rowsUpdated(newVal, oldVal) {
+    if (newVal) {
+      if (!this.options.paging.externalPaging) {
         this.options.paging.count = newVal.length;
       }
 
       this.count = this.options.paging.count;
 
-      if(this.treeColumn || this.groupColumn){
+      if (this.treeColumn || this.groupColumn) {
         this.buildRowsByGroup();
       }
 
-      if(this.options.scrollbarV){
+      if (this.options.scrollbarV) {
         let refresh = newVal && oldVal && (newVal.length === oldVal.length
           || newVal.length < oldVal.length);
 
@@ -1092,18 +1114,18 @@ class BodyController{
       } else {
         let rows = this.rows;
 
-        if(this.treeColumn){
+        if (this.treeColumn) {
           rows = this.buildTree();
-        } else if(this.groupColumn){
+        } else if (this.groupColumn) {
           rows = this.buildGroups();
         }
 
-        if(this.options.paging.externalPaging){
+        if (this.options.paging.externalPaging) {
           let idxs = this.getFirstLastIndexes(),
-              idx = idxs.first;
+            idx = idxs.first;
 
           this.tempRows.splice(0, this.tempRows.length);
-          while(idx < idxs.last){
+          while (idx < idxs.last) {
             this.tempRows.push(rows[idx++])
           }
         } else {
@@ -1117,15 +1139,15 @@ class BodyController{
   /**
    * Gets the first and last indexes based on the offset, row height, page size, and overall count.
    */
-  getFirstLastIndexes(){
+  getFirstLastIndexes() {
     var firstRowIndex, endIndex;
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       firstRowIndex = Math.max(Math.floor((
-          this.options.internal.offsetY || 0) / this.options.rowHeight, 0), 0);
+        this.options.internal.offsetY || 0) / this.options.rowHeight, 0), 0);
       endIndex = Math.min(firstRowIndex + this.options.paging.size, this.count);
     } else {
-      if(this.options.paging.externalPaging){
+      if (this.options.paging.externalPaging) {
         firstRowIndex = Math.max(this.options.paging.offset * this.options.paging.size, 0);
         endIndex = Math.min(firstRowIndex + this.options.paging.size, this.count);
       } else {
@@ -1142,23 +1164,23 @@ class BodyController{
   /**
    * Updates the page's offset given the scroll position.
    */
-  updatePage(){
+  updatePage() {
     let curPage = this.options.paging.offset,
-        idxs = this.getFirstLastIndexes();
+      idxs = this.getFirstLastIndexes();
 
-    if (this.options.internal.oldScrollPosition === undefined){
+    if (this.options.internal.oldScrollPosition === undefined) {
       this.options.internal.oldScrollPosition = 0;
     }
 
     let oldScrollPosition = this.options.internal.oldScrollPosition,
-        newPage = idxs.first / this.options.paging.size;
+      newPage = idxs.first / this.options.paging.size;
 
     this.options.internal.oldScrollPosition = newPage;
 
     if (newPage < oldScrollPosition) {
       // scrolling up
       newPage = Math.floor(newPage);
-    } else if (newPage > oldScrollPosition){
+    } else if (newPage > oldScrollPosition) {
       // scrolling down
       newPage = Math.ceil(newPage);
     } else {
@@ -1166,7 +1188,7 @@ class BodyController{
       newPage = curPage;
     }
 
-    if(!isNaN(newPage)){
+    if (!isNaN(newPage)) {
       this.options.paging.offset = newPage;
     }
   }
@@ -1177,10 +1199,10 @@ class BodyController{
    * @param depth
    * @return {Integer}
   */
-  calculateDepth(row, depth=0){
+  calculateDepth(row, depth = 0) {
     var parentProp = this.treeColumn ? this.treeColumn.relationProp : this.groupColumn.prop;
     var prop = this.treeColumn.prop;
-    if (!row[parentProp]){
+    if (!row[parentProp]) {
       return depth;
     }
     if (row.$$depth) {
@@ -1192,10 +1214,10 @@ class BodyController{
       depth += 1;
       return this.calculateDepth(cachedParent, depth);
     }
-    for (var i=0, len = this.rows.length; i < len;  i++){
+    for (var i = 0, len = this.rows.length; i < len; i++) {
       var parent = this.rows[i];
-      if (parent[prop] == row[parentProp]){
-        depth+=1;
+      if (parent[prop] == row[parentProp]) {
+        depth += 1;
         return this.calculateDepth(parent, depth);
       }
     }
@@ -1217,7 +1239,7 @@ class BodyController{
    *  }
    *
    */
-  buildRowsByGroup(){
+  buildRowsByGroup() {
     this.index = {};
     this.rowsByGroup = {};
 
@@ -1225,30 +1247,30 @@ class BodyController{
       this.treeColumn.relationProp :
       this.groupColumn.prop;
 
-    for(var i = 0, len = this.rows.length; i < len; i++) {
+    for (var i = 0, len = this.rows.length; i < len; i++) {
       var row = this.rows[i];
       // build groups
       var relVal = row[parentProp];
-      if(relVal){
-        if(this.rowsByGroup[relVal]){
+      if (relVal) {
+        if (this.rowsByGroup[relVal]) {
           this.rowsByGroup[relVal].push(row);
         } else {
-          this.rowsByGroup[relVal] = [ row ];
+          this.rowsByGroup[relVal] = [row];
         }
       }
 
       // build indexes
-      if(this.treeColumn){
+      if (this.treeColumn) {
         var prop = this.treeColumn.prop;
         this.index[row[prop]] = row;
 
-        if (row[parentProp] === undefined){
+        if (row[parentProp] === undefined) {
           row.$$depth = 0;
         } else {
           var parent = this.index[row[parentProp]];
-          if (parent === undefined){
-            for (var j=0; j < len; j++){
-              if (this.rows[j][prop] == relVal){
+          if (parent === undefined) {
+            for (var j = 0; j < len; j++) {
+              if (this.rows[j][prop] == relVal) {
                 parent = this.rows[j];
                 break;
               }
@@ -1258,7 +1280,7 @@ class BodyController{
             parent.$$depth = this.calculateDepth(parent);
           }
           row.$$depth = parent.$$depth + 1;
-          if (parent.$$children){
+          if (parent.$$children) {
             parent.$$children.push(row[prop]);
           } else {
             parent.$$children = [row[prop]];
@@ -1273,7 +1295,7 @@ class BodyController{
    * This function needs some optimization, todo for future release.
    * @return {Array} the temp array containing expanded rows
    */
-  buildGroups(){
+  buildGroups() {
     var temp = [];
 
     angular.forEach(this.rowsByGroup, (v, k) => {
@@ -1282,7 +1304,7 @@ class BodyController{
         group: true
       });
 
-      if(this.expanded[k]){
+      if (this.expanded[k]) {
         temp.push(...v);
       }
     });
@@ -1295,11 +1317,11 @@ class BodyController{
    * @param  {row}
    * @return {Boolean}
    */
-  isSelected(row){
+  isSelected(row) {
     var selected = false;
 
-    if(this.options.selectable){
-      if(this.options.multiSelect){
+    if (this.options.selectable) {
+      if (this.options.multiSelect) {
         selected = this.selected.indexOf(row) > -1;
       } else {
         selected = this.selected === row;
@@ -1313,16 +1335,16 @@ class BodyController{
    * Creates a tree of the existing expanded values
    * @return {array} the built tree
    */
-  buildTree(){
+  buildTree() {
     var temp = [],
-        self = this;
+      self = this;
 
     function addChildren(fromArray, toArray, level) {
       fromArray.forEach(function (row) {
         var relVal = row[self.treeColumn.relationProp],
-            key = row[self.treeColumn.prop],
-            groupRows = self.rowsByGroup[key],
-            expanded = self.expanded[key];
+          key = row[self.treeColumn.prop],
+          groupRows = self.rowsByGroup[key],
+          expanded = self.expanded[key];
 
         if (level > 0 || !relVal) {
           toArray.push(row);
@@ -1343,48 +1365,48 @@ class BodyController{
    * Creates the intermediate collection that is shown in the view.
    * @param  {boolean} refresh - bust the tree/group cache
    */
-  getRows(refresh){
+  getRows(refresh) {
     // only proceed when we have pre-aggregated the values
-    if((this.treeColumn || this.groupColumn) && !this.rowsByGroup){
+    if ((this.treeColumn || this.groupColumn) && !this.rowsByGroup) {
       return false;
     }
 
     var temp;
 
-    if(this.treeColumn) {
+    if (this.treeColumn) {
       temp = this.treeTemp || [];
       // cache the tree build
-      if((refresh || !this.treeTemp)){
+      if ((refresh || !this.treeTemp)) {
         this.treeTemp = temp = this.buildTree();
         this.count = temp.length;
 
         // have to force reset, optimize this later
         this.tempRows.splice(0, this.tempRows.length);
       }
-    } else if(this.groupColumn) {
+    } else if (this.groupColumn) {
       temp = this.groupsTemp || [];
       // cache the group build
-      if((refresh || !this.groupsTemp)){
+      if ((refresh || !this.groupsTemp)) {
         this.groupsTemp = temp = this.buildGroups();
         this.count = temp.length;
       }
     } else {
       temp = this.rows;
-       if(refresh === true){
+      if (refresh === true) {
         this.tempRows.splice(0, this.tempRows.length);
       }
     }
 
     var idx = 0,
-        indexes = this.getFirstLastIndexes(),
-        rowIndex = indexes.first;
+      indexes = this.getFirstLastIndexes(),
+      rowIndex = indexes.first;
 
     // slice out the old rows so we don't have duplicates
     this.tempRows.splice(0, indexes.last - indexes.first);
 
     while (rowIndex < indexes.last && rowIndex < this.count) {
       var row = temp[rowIndex];
-      if(row){
+      if (row) {
         row.$$index = rowIndex;
         this.tempRows[idx] = row;
       }
@@ -1401,18 +1423,18 @@ class BodyController{
    * Returns the styles for the table body directive.
    * @return {object}
    */
-  styles(){
+  styles() {
     var styles = {
       width: this.options.internal.innerWidth + 'px'
     };
 
-    if(!this.options.scrollbarV){
+    if (!this.options.scrollbarV) {
       styles.overflowY = 'hidden';
-    } else if(this.options.scrollbarH === false){
+    } else if (this.options.scrollbarH === false) {
       styles.overflowX = 'hidden';
     }
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       styles.height = this.options.internal.bodyHeight + 'px';
     }
 
@@ -1424,10 +1446,10 @@ class BodyController{
    * @param  {row}
    * @return {styles object}
    */
-  rowStyles(row){
+  rowStyles(row) {
     let styles = {};
 
-    if(this.options.rowHeight === 'auto'){
+    if (this.options.rowHeight === 'auto') {
       styles.height = this.options.rowHeight + 'px';
     }
 
@@ -1439,7 +1461,7 @@ class BodyController{
    * @param  {object} row
    * @return {object} styles
    */
-  groupRowStyles(row){
+  groupRowStyles(row) {
     var styles = this.rowStyles(row);
     styles.width = this.columnWidths.total + 'px';
     return styles;
@@ -1450,14 +1472,14 @@ class BodyController{
    * @param  {row}
    * @return {css class object}
    */
-  rowClasses(row){
+  rowClasses(row) {
     var styles = {
       'selected': this.isSelected(row),
-      'dt-row-even': row && row.$$index%2 === 0,
-      'dt-row-odd': row && row.$$index%2 !== 0
+      'dt-row-even': row && row.$$index % 2 === 0,
+      'dt-row-odd': row && row.$$index % 2 !== 0
     };
 
-    if(this.treeColumn){
+    if (this.treeColumn) {
       // if i am a child
       styles['dt-leaf'] = this.rowsByGroup[row[this.treeColumn.relationProp]];
       // if i have children
@@ -1474,7 +1496,7 @@ class BodyController{
    * @param  {index}
    * @return {row model}
    */
-  getRowValue(idx){
+  getRowValue(idx) {
     return this.tempRows[idx];
   }
 
@@ -1483,10 +1505,10 @@ class BodyController{
    * @param  {row}
    * @return {boolean}
    */
-  getRowExpanded(row){
-    if(this.treeColumn) {
+  getRowExpanded(row) {
+    if (this.treeColumn) {
       return this.expanded[row[this.treeColumn.prop]];
-    } else if(this.groupColumn){
+    } else if (this.groupColumn) {
       return this.expanded[row.name];
     }
   }
@@ -1496,8 +1518,8 @@ class BodyController{
    * @param  {row}
    * @return {boolean}
    */
-  getRowHasChildren(row){
-    if(!this.treeColumn) return;
+  getRowHasChildren(row) {
+    if (!this.treeColumn) return;
     var children = this.rowsByGroup[row[this.treeColumn.prop]];
     return children !== undefined || (children && !children.length);
   }
@@ -1507,11 +1529,11 @@ class BodyController{
    * @param  {row model}
    * @param  {cell model}
    */
-  onTreeToggled(row, cell){
-    var val  = row[this.treeColumn.prop];
+  onTreeToggled(row, cell) {
+    var val = row[this.treeColumn.prop];
     this.expanded[val] = !this.expanded[val];
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       this.getRows(true);
     } else {
       var values = this.buildTree();
@@ -1529,10 +1551,10 @@ class BodyController{
    * Invoked when the row group directive was expanded
    * @param  {object} row
    */
-  onGroupToggle(row){
+  onGroupToggle(row) {
     this.expanded[row.name] = !this.expanded[row.name];
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       this.getRows(true);
     } else {
       var values = this.buildGroups();
@@ -2640,22 +2662,27 @@ class DataTableController {
    * @param  {filter}
    */
   /*@ngInject*/
-  constructor($scope, $filter, $log, $transclude){
+  constructor($scope, $filter, $transclude) {
     Object.assign(this, {
       $scope: $scope,
       $filter: $filter,
-      $log: $log
     });
 
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+  }
+
+  $onInit() {
     this.defaults();
 
     // set scope to the parent
-    this.options.$outer = $scope.$parent;
+    this.options.$outer = this.$scope.$parent;
 
-    $scope.$watch('dt.options.columns', (newVal, oldVal) => {
+    this.$scope.$watch('dt.options.columns', (newVal, oldVal) => {
       this.transposeColumnDefaults();
 
-      if(newVal.length !== oldVal.length){
+      if (newVal.length !== oldVal.length) {
         this.adjustColumns();
       }
 
@@ -2663,8 +2690,8 @@ class DataTableController {
     }, true);
 
     // default sort
-    var watch = $scope.$watch('dt.rows', (newVal) => {
-      if(newVal){
+    var watch = this.$scope.$watch('dt.rows', (newVal) => {
+      if (newVal) {
         watch();
         this.onSorted();
       }
@@ -2674,19 +2701,19 @@ class DataTableController {
   /**
    * Creates and extends default options for the grid control
    */
-  defaults(){
+  defaults() {
     this.expanded = this.expanded || {};
 
     this.options = angular.extend(angular.
       copy(TableDefaults), this.options);
 
-    angular.forEach(TableDefaults.paging, (v,k) => {
-      if(!this.options.paging[k]){
+    angular.forEach(TableDefaults.paging, (v, k) => {
+      if (!this.options.paging[k]) {
         this.options.paging[k] = v;
       }
     });
 
-    if(this.options.selectable && this.options.multiSelect){
+    if (this.options.selectable && this.options.multiSelect) {
       this.selected = this.selected || [];
     }
   }
@@ -2696,18 +2723,18 @@ class DataTableController {
    * make sure all the columns added have the correct
    * defaults applied.
    */
-  transposeColumnDefaults(){
-    for(var i=0, len = this.options.columns.length; i < len; i++) {
+  transposeColumnDefaults() {
+    for (var i = 0, len = this.options.columns.length; i < len; i++) {
       var column = this.options.columns[i];
       column.$id = ObjectId();
 
-      angular.forEach(ColumnDefaults, (v,k) => {
-        if(!column.hasOwnProperty(k)){
+      angular.forEach(ColumnDefaults, (v, k) => {
+        if (!column.hasOwnProperty(k)) {
           column[k] = v;
         }
       });
 
-      if(column.name && !column.prop){
+      if (column.name && !column.prop) {
         column.prop = CamelCase(column.name);
       }
 
@@ -2718,7 +2745,7 @@ class DataTableController {
   /**
    * Calculate column groups and widths
    */
-  calculateColumns(){
+  calculateColumns() {
     var columns = this.options.columns;
     this.columnsByPin = ColumnsByPin(columns);
     this.columnWidths = ColumnGroupWidths(this.columnsByPin, columns);
@@ -2728,7 +2755,7 @@ class DataTableController {
    * Returns the css classes for the data table.
    * @return {style object}
    */
-  tableCss(){
+  tableCss() {
     return {
       'fixed': this.options.scrollbarV,
       'selectable': this.options.selectable,
@@ -2740,12 +2767,12 @@ class DataTableController {
    * Adjusts the column widths to handle greed/etc.
    * @param  {int} forceIdx
    */
-  adjustColumns(forceIdx){
+  adjustColumns(forceIdx) {
     var width = this.options.internal.innerWidth - this.options.internal.scrollBarWidth;
 
-    if(this.options.columnMode === 'force'){
+    if (this.options.columnMode === 'force') {
       ForceFillColumnWidths(this.options.columns, width, forceIdx);
-    } else if(this.options.columnMode === 'flex') {
+    } else if (this.options.columnMode === 'flex') {
       AdjustColumnWidths(this.options.columns, width);
     }
   }
@@ -2754,7 +2781,7 @@ class DataTableController {
    * Calculates the page size given the height * row height.
    * @return {[type]}
    */
-  calculatePageSize(){
+  calculatePageSize() {
     this.options.paging.size = Math.ceil(
       this.options.internal.bodyHeight / this.options.rowHeight) + 1;
   }
@@ -2762,8 +2789,8 @@ class DataTableController {
   /**
    * Sorts the values of the grid for client side sorting.
    */
-  onSorted(){
-    if(!this.rows) return;
+  onSorted() {
+    if (!this.rows) return;
 
     // return all sorted column, in the same order in which they were sorted
     var sorts = this.options.columns
@@ -2772,12 +2799,12 @@ class DataTableController {
       })
       .sort((a, b) => {
         // sort the columns with lower sortPriority order first
-        if (a.sortPriority && b.sortPriority){
+        if (a.sortPriority && b.sortPriority) {
           if (a.sortPriority > b.sortPriority) return 1;
           if (a.sortPriority < b.sortPriority) return -1;
-        } else if (a.sortPriority){
+        } else if (a.sortPriority) {
           return -1;
-        } else if (b.sortPriority){
+        } else if (b.sortPriority) {
           return 1;
         }
 
@@ -2789,17 +2816,17 @@ class DataTableController {
         return c;
       });
 
-    if(sorts.length){
-      this.onSort({sorts: sorts});
+    if (sorts.length) {
+      this.onSort({ sorts: sorts });
 
-      if (this.options.onSort){
+      if (this.options.onSort) {
         this.options.onSort(sorts);
       }
 
       var clientSorts = [];
-      for(var i=0, len=sorts.length; i < len; i++) {
+      for (var i = 0, len = sorts.length; i < len; i++) {
         var c = sorts[i];
-        if(c.comparator !== false){
+        if (c.comparator !== false) {
           var dir = c.sort === 'asc' ? '' : '-';
           if (c.sortBy !== undefined) {
             clientSorts.push(dir + c.sortBy);
@@ -2809,7 +2836,7 @@ class DataTableController {
         }
       }
 
-      if(clientSorts.length){
+      if (clientSorts.length) {
         // todo: more ideal to just resort vs splice and repush
         // but wasn't responding to this change ...
         var sortedValues = this.$filter('orderBy')(this.rows, clientSorts);
@@ -2826,7 +2853,7 @@ class DataTableController {
    * @param  {row model}
    * @param  {cell model}
    */
-  onTreeToggled(row, cell){
+  onTreeToggled(row, cell) {
     this.onTreeToggle({
       row: row,
       cell: cell
@@ -2838,7 +2865,7 @@ class DataTableController {
    * @param  {offset}
    * @param  {size}
    */
-  onBodyPage(offset, size){
+  onBodyPage(offset, size) {
     this.onPage({
       offset: offset,
       size: size
@@ -2850,9 +2877,9 @@ class DataTableController {
    * @param  {offset}
    * @param  {size}
    */
-  onFooterPage(offset, size){
+  onFooterPage(offset, size) {
     var pageBlockSize = this.options.rowHeight * size,
-        offsetY = pageBlockSize * offset;
+      offsetY = pageBlockSize * offset;
 
     this.options.internal.setYOffset(offsetY);
   }
@@ -2860,12 +2887,12 @@ class DataTableController {
   /**
    * Invoked when the header checkbox directive has changed.
    */
-  onHeaderCheckboxChange(){
-    if(this.rows){
+  onHeaderCheckboxChange() {
+    if (this.rows) {
       var matches = this.selected.length === this.rows.length;
       this.selected.splice(0, this.selected.length);
 
-      if(!matches){
+      if (!matches) {
         this.selected.push(...this.rows);
       }
     }
@@ -2875,8 +2902,8 @@ class DataTableController {
    * Returns if all the rows are selected
    * @return {Boolean} if all selected
    */
-  isAllRowsSelected(){
-    if(this.rows) return false;
+  isAllRowsSelected() {
+    if (this.rows) return false;
     return this.selected.length === this.rows.length;
   }
 
@@ -2885,9 +2912,9 @@ class DataTableController {
    * @param  {object} column
    * @param  {int} width
    */
-  onResized(column, width){
-    var idx =this.options.columns.indexOf(column);
-    if(idx > -1){
+  onResized(column, width) {
+    var idx = this.options.columns.indexOf(column);
+    if (idx > -1) {
       var column = this.options.columns[idx];
       column.width = width;
       column.canAutoResize = false;
@@ -2896,7 +2923,7 @@ class DataTableController {
       this.calculateColumns();
     }
 
-    if (this.onColumnResize){
+    if (this.onColumnResize) {
       this.onColumnResize({
         column: column,
         width: width
@@ -2908,7 +2935,7 @@ class DataTableController {
    * Occurs when a row was selected
    * @param  {object} rows
    */
-  onSelected(rows){
+  onSelected(rows) {
     this.onSelect({
       rows: rows
     });
@@ -2918,7 +2945,7 @@ class DataTableController {
    * Occurs when a row was click but may not be selected.
    * @param  {object} row
    */
-  onRowClicked(row){
+  onRowClicked(row) {
     this.onRowClick({
       row: row
     });
@@ -2928,7 +2955,7 @@ class DataTableController {
    * Occurs when a row was double click but may not be selected.
    * @param  {object} row
    */
-  onRowDblClicked(row){
+  onRowDblClicked(row) {
     this.onRowDblClick({
       row: row
     });
