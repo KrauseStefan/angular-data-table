@@ -5,23 +5,30 @@ export class PagerController {
    * @param  {object} $scope   
    */
   /*@ngInject*/
-  constructor($scope){
-    $scope.$watch('pager.count', (newVal) => {
+  constructor($scope) {
+    this.$scope = $scope;
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+  }
+
+  $onInit() {
+    this.$scope.$watch('pager.count', (newVal) => {
       this.calcTotalPages(this.size, this.count);
       this.getPages(this.page || 1);
     });
 
-    $scope.$watch('pager.size', (newVal) => {
+    this.$scope.$watch('pager.size', (newVal) => {
       this.calcTotalPages(this.size, this.count);
       this.getPages(this.page || 1);
     });
 
-    $scope.$watch('pager.page', (newVal) => {
+    this.$scope.$watch('pager.page', (newVal) => {
       if (newVal !== 0 && newVal <= this.totalPages) {
         this.getPages(newVal);
       }
     });
-    
+
     this.getPages(this.page || 1);
   }
 
@@ -38,7 +45,7 @@ export class PagerController {
    * Select a page
    * @param  {int} num   
    */
-  selectPage(num){
+  selectPage(num) {
     if (num > 0 && num <= this.totalPages) {
       this.page = num;
       this.onPage({
@@ -50,7 +57,7 @@ export class PagerController {
   /**
    * Selects the previous pager
    */
-  prevPage(){
+  prevPage() {
     if (this.page > 1) {
       this.selectPage(--this.page);
     }
@@ -59,7 +66,7 @@ export class PagerController {
   /**
    * Selects the next page
    */
-  nextPage(){
+  nextPage() {
     this.selectPage(++this.page);
   }
 
@@ -67,7 +74,7 @@ export class PagerController {
    * Determines if the pager can go previous
    * @return {boolean}
    */
-  canPrevious(){
+  canPrevious() {
     return this.page > 1;
   }
 
@@ -75,7 +82,7 @@ export class PagerController {
    * Determines if the pager can go forward
    * @return {boolean}       
    */
-  canNext(){
+  canNext() {
     return this.page < this.totalPages;
   }
 
@@ -85,10 +92,10 @@ export class PagerController {
    */
   getPages(page) {
     var pages = [],
-        startPage = 1, 
-        endPage = this.totalPages,
-        maxSize = 5,
-        isMaxSized = maxSize < this.totalPages;
+      startPage = 1,
+      endPage = this.totalPages,
+      maxSize = 5,
+      isMaxSized = maxSize < this.totalPages;
 
     if (isMaxSized) {
       startPage = ((Math.ceil(page / maxSize) - 1) * maxSize) + 1;

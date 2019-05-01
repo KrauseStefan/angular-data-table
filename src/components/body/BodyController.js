@@ -1,18 +1,24 @@
 import angular from 'angular';
 
-export class BodyController{
+export class BodyController {
 
   /**
    * A tale body controller
    * @param  {$scope}
-   * @param  {$timeout}
    * @return {BodyController}
    */
   /*@ngInject*/
-  constructor($scope, $timeout){
+  constructor($scope) {
     this.$scope = $scope;
     this.tempRows = [];
 
+    if (angular.version.major === 1 && angular.version.minor <= 4) {
+      this.$onInit();
+    }
+
+  }
+
+  $onInit() {
     this.treeColumn = this.options.columns.find((c) => {
       return c.isTreeColumn;
     });
@@ -21,24 +27,24 @@ export class BodyController{
       return c.group;
     });
 
-    $scope.$watchCollection('body.rows', this.rowsUpdated.bind(this));
+    this.$scope.$watchCollection('body.rows', this.rowsUpdated.bind(this));
 
-    if(this.options.scrollbarV || (!this.options.scrollbarV && this.options.paging.externalPaging)){
+    if (this.options.scrollbarV || (!this.options.scrollbarV && this.options.paging.externalPaging)) {
       var sized = false;
-      $scope.$watch('body.options.paging.size', (newVal, oldVal) => {
-        if(!sized || newVal > oldVal){
+      this.$scope.$watch('body.options.paging.size', (newVal, oldVal) => {
+        if (!sized || newVal > oldVal) {
           this.getRows();
           sized = true;
         }
       });
 
-      $scope.$watch('body.options.paging.count', (count) => {
+      this.$scope.$watch('body.options.paging.count', (count) => {
         this.count = count;
         this.updatePage();
       });
 
-      $scope.$watch('body.options.paging.offset', (newVal) => {
-        if(this.options.paging.size){
+      this.$scope.$watch('body.options.paging.offset', (newVal) => {
+        if (this.options.paging.size) {
           this.onPage({
             offset: newVal,
             size: this.options.paging.size
@@ -46,21 +52,22 @@ export class BodyController{
         }
       });
     }
+
   }
 
-  rowsUpdated(newVal, oldVal){
-    if(newVal) {
-      if(!this.options.paging.externalPaging){
+  rowsUpdated(newVal, oldVal) {
+    if (newVal) {
+      if (!this.options.paging.externalPaging) {
         this.options.paging.count = newVal.length;
       }
 
       this.count = this.options.paging.count;
 
-      if(this.treeColumn || this.groupColumn){
+      if (this.treeColumn || this.groupColumn) {
         this.buildRowsByGroup();
       }
 
-      if(this.options.scrollbarV){
+      if (this.options.scrollbarV) {
         let refresh = newVal && oldVal && (newVal.length === oldVal.length
           || newVal.length < oldVal.length);
 
@@ -68,18 +75,18 @@ export class BodyController{
       } else {
         let rows = this.rows;
 
-        if(this.treeColumn){
+        if (this.treeColumn) {
           rows = this.buildTree();
-        } else if(this.groupColumn){
+        } else if (this.groupColumn) {
           rows = this.buildGroups();
         }
 
-        if(this.options.paging.externalPaging){
+        if (this.options.paging.externalPaging) {
           let idxs = this.getFirstLastIndexes(),
-              idx = idxs.first;
+            idx = idxs.first;
 
           this.tempRows.splice(0, this.tempRows.length);
-          while(idx < idxs.last){
+          while (idx < idxs.last) {
             this.tempRows.push(rows[idx++])
           }
         } else {
@@ -93,15 +100,15 @@ export class BodyController{
   /**
    * Gets the first and last indexes based on the offset, row height, page size, and overall count.
    */
-  getFirstLastIndexes(){
+  getFirstLastIndexes() {
     var firstRowIndex, endIndex;
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       firstRowIndex = Math.max(Math.floor((
-          this.options.internal.offsetY || 0) / this.options.rowHeight, 0), 0);
+        this.options.internal.offsetY || 0) / this.options.rowHeight, 0), 0);
       endIndex = Math.min(firstRowIndex + this.options.paging.size, this.count);
     } else {
-      if(this.options.paging.externalPaging){
+      if (this.options.paging.externalPaging) {
         firstRowIndex = Math.max(this.options.paging.offset * this.options.paging.size, 0);
         endIndex = Math.min(firstRowIndex + this.options.paging.size, this.count);
       } else {
@@ -118,23 +125,23 @@ export class BodyController{
   /**
    * Updates the page's offset given the scroll position.
    */
-  updatePage(){
+  updatePage() {
     let curPage = this.options.paging.offset,
-        idxs = this.getFirstLastIndexes();
+      idxs = this.getFirstLastIndexes();
 
-    if (this.options.internal.oldScrollPosition === undefined){
+    if (this.options.internal.oldScrollPosition === undefined) {
       this.options.internal.oldScrollPosition = 0;
     }
 
     let oldScrollPosition = this.options.internal.oldScrollPosition,
-        newPage = idxs.first / this.options.paging.size;
+      newPage = idxs.first / this.options.paging.size;
 
     this.options.internal.oldScrollPosition = newPage;
 
     if (newPage < oldScrollPosition) {
       // scrolling up
       newPage = Math.floor(newPage);
-    } else if (newPage > oldScrollPosition){
+    } else if (newPage > oldScrollPosition) {
       // scrolling down
       newPage = Math.ceil(newPage);
     } else {
@@ -142,7 +149,7 @@ export class BodyController{
       newPage = curPage;
     }
 
-    if(!isNaN(newPage)){
+    if (!isNaN(newPage)) {
       this.options.paging.offset = newPage;
     }
   }
@@ -153,10 +160,10 @@ export class BodyController{
    * @param depth
    * @return {Integer}
   */
-  calculateDepth(row, depth=0){
+  calculateDepth(row, depth = 0) {
     var parentProp = this.treeColumn ? this.treeColumn.relationProp : this.groupColumn.prop;
     var prop = this.treeColumn.prop;
-    if (!row[parentProp]){
+    if (!row[parentProp]) {
       return depth;
     }
     if (row.$$depth) {
@@ -168,10 +175,10 @@ export class BodyController{
       depth += 1;
       return this.calculateDepth(cachedParent, depth);
     }
-    for (var i=0, len = this.rows.length; i < len;  i++){
+    for (var i = 0, len = this.rows.length; i < len; i++) {
       var parent = this.rows[i];
-      if (parent[prop] == row[parentProp]){
-        depth+=1;
+      if (parent[prop] == row[parentProp]) {
+        depth += 1;
         return this.calculateDepth(parent, depth);
       }
     }
@@ -193,7 +200,7 @@ export class BodyController{
    *  }
    *
    */
-  buildRowsByGroup(){
+  buildRowsByGroup() {
     this.index = {};
     this.rowsByGroup = {};
 
@@ -201,30 +208,30 @@ export class BodyController{
       this.treeColumn.relationProp :
       this.groupColumn.prop;
 
-    for(var i = 0, len = this.rows.length; i < len; i++) {
+    for (var i = 0, len = this.rows.length; i < len; i++) {
       var row = this.rows[i];
       // build groups
       var relVal = row[parentProp];
-      if(relVal){
-        if(this.rowsByGroup[relVal]){
+      if (relVal) {
+        if (this.rowsByGroup[relVal]) {
           this.rowsByGroup[relVal].push(row);
         } else {
-          this.rowsByGroup[relVal] = [ row ];
+          this.rowsByGroup[relVal] = [row];
         }
       }
 
       // build indexes
-      if(this.treeColumn){
+      if (this.treeColumn) {
         var prop = this.treeColumn.prop;
         this.index[row[prop]] = row;
 
-        if (row[parentProp] === undefined){
+        if (row[parentProp] === undefined) {
           row.$$depth = 0;
         } else {
           var parent = this.index[row[parentProp]];
-          if (parent === undefined){
-            for (var j=0; j < len; j++){
-              if (this.rows[j][prop] == relVal){
+          if (parent === undefined) {
+            for (var j = 0; j < len; j++) {
+              if (this.rows[j][prop] == relVal) {
                 parent = this.rows[j];
                 break;
               }
@@ -234,7 +241,7 @@ export class BodyController{
             parent.$$depth = this.calculateDepth(parent);
           }
           row.$$depth = parent.$$depth + 1;
-          if (parent.$$children){
+          if (parent.$$children) {
             parent.$$children.push(row[prop]);
           } else {
             parent.$$children = [row[prop]];
@@ -249,7 +256,7 @@ export class BodyController{
    * This function needs some optimization, todo for future release.
    * @return {Array} the temp array containing expanded rows
    */
-  buildGroups(){
+  buildGroups() {
     var temp = [];
 
     angular.forEach(this.rowsByGroup, (v, k) => {
@@ -258,7 +265,7 @@ export class BodyController{
         group: true
       });
 
-      if(this.expanded[k]){
+      if (this.expanded[k]) {
         temp.push(...v);
       }
     });
@@ -271,11 +278,11 @@ export class BodyController{
    * @param  {row}
    * @return {Boolean}
    */
-  isSelected(row){
+  isSelected(row) {
     var selected = false;
 
-    if(this.options.selectable){
-      if(this.options.multiSelect){
+    if (this.options.selectable) {
+      if (this.options.multiSelect) {
         selected = this.selected.indexOf(row) > -1;
       } else {
         selected = this.selected === row;
@@ -289,16 +296,16 @@ export class BodyController{
    * Creates a tree of the existing expanded values
    * @return {array} the built tree
    */
-  buildTree(){
+  buildTree() {
     var temp = [],
-        self = this;
+      self = this;
 
     function addChildren(fromArray, toArray, level) {
       fromArray.forEach(function (row) {
         var relVal = row[self.treeColumn.relationProp],
-            key = row[self.treeColumn.prop],
-            groupRows = self.rowsByGroup[key],
-            expanded = self.expanded[key];
+          key = row[self.treeColumn.prop],
+          groupRows = self.rowsByGroup[key],
+          expanded = self.expanded[key];
 
         if (level > 0 || !relVal) {
           toArray.push(row);
@@ -319,48 +326,48 @@ export class BodyController{
    * Creates the intermediate collection that is shown in the view.
    * @param  {boolean} refresh - bust the tree/group cache
    */
-  getRows(refresh){
+  getRows(refresh) {
     // only proceed when we have pre-aggregated the values
-    if((this.treeColumn || this.groupColumn) && !this.rowsByGroup){
+    if ((this.treeColumn || this.groupColumn) && !this.rowsByGroup) {
       return false;
     }
 
     var temp;
 
-    if(this.treeColumn) {
+    if (this.treeColumn) {
       temp = this.treeTemp || [];
       // cache the tree build
-      if((refresh || !this.treeTemp)){
+      if ((refresh || !this.treeTemp)) {
         this.treeTemp = temp = this.buildTree();
         this.count = temp.length;
 
         // have to force reset, optimize this later
         this.tempRows.splice(0, this.tempRows.length);
       }
-    } else if(this.groupColumn) {
+    } else if (this.groupColumn) {
       temp = this.groupsTemp || [];
       // cache the group build
-      if((refresh || !this.groupsTemp)){
+      if ((refresh || !this.groupsTemp)) {
         this.groupsTemp = temp = this.buildGroups();
         this.count = temp.length;
       }
     } else {
       temp = this.rows;
-       if(refresh === true){
+      if (refresh === true) {
         this.tempRows.splice(0, this.tempRows.length);
       }
     }
 
     var idx = 0,
-        indexes = this.getFirstLastIndexes(),
-        rowIndex = indexes.first;
+      indexes = this.getFirstLastIndexes(),
+      rowIndex = indexes.first;
 
     // slice out the old rows so we don't have duplicates
     this.tempRows.splice(0, indexes.last - indexes.first);
 
     while (rowIndex < indexes.last && rowIndex < this.count) {
       var row = temp[rowIndex];
-      if(row){
+      if (row) {
         row.$$index = rowIndex;
         this.tempRows[idx] = row;
       }
@@ -377,18 +384,18 @@ export class BodyController{
    * Returns the styles for the table body directive.
    * @return {object}
    */
-  styles(){
+  styles() {
     var styles = {
       width: this.options.internal.innerWidth + 'px'
     };
 
-    if(!this.options.scrollbarV){
+    if (!this.options.scrollbarV) {
       styles.overflowY = 'hidden';
-    } else if(this.options.scrollbarH === false){
+    } else if (this.options.scrollbarH === false) {
       styles.overflowX = 'hidden';
     }
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       styles.height = this.options.internal.bodyHeight + 'px';
     }
 
@@ -400,10 +407,10 @@ export class BodyController{
    * @param  {row}
    * @return {styles object}
    */
-  rowStyles(row){
+  rowStyles(row) {
     let styles = {};
 
-    if(this.options.rowHeight === 'auto'){
+    if (this.options.rowHeight === 'auto') {
       styles.height = this.options.rowHeight + 'px';
     }
 
@@ -415,7 +422,7 @@ export class BodyController{
    * @param  {object} row
    * @return {object} styles
    */
-  groupRowStyles(row){
+  groupRowStyles(row) {
     var styles = this.rowStyles(row);
     styles.width = this.columnWidths.total + 'px';
     return styles;
@@ -426,14 +433,14 @@ export class BodyController{
    * @param  {row}
    * @return {css class object}
    */
-  rowClasses(row){
+  rowClasses(row) {
     var styles = {
       'selected': this.isSelected(row),
-      'dt-row-even': row && row.$$index%2 === 0,
-      'dt-row-odd': row && row.$$index%2 !== 0
+      'dt-row-even': row && row.$$index % 2 === 0,
+      'dt-row-odd': row && row.$$index % 2 !== 0
     };
 
-    if(this.treeColumn){
+    if (this.treeColumn) {
       // if i am a child
       styles['dt-leaf'] = this.rowsByGroup[row[this.treeColumn.relationProp]];
       // if i have children
@@ -450,7 +457,7 @@ export class BodyController{
    * @param  {index}
    * @return {row model}
    */
-  getRowValue(idx){
+  getRowValue(idx) {
     return this.tempRows[idx];
   }
 
@@ -459,10 +466,10 @@ export class BodyController{
    * @param  {row}
    * @return {boolean}
    */
-  getRowExpanded(row){
-    if(this.treeColumn) {
+  getRowExpanded(row) {
+    if (this.treeColumn) {
       return this.expanded[row[this.treeColumn.prop]];
-    } else if(this.groupColumn){
+    } else if (this.groupColumn) {
       return this.expanded[row.name];
     }
   }
@@ -472,8 +479,8 @@ export class BodyController{
    * @param  {row}
    * @return {boolean}
    */
-  getRowHasChildren(row){
-    if(!this.treeColumn) return;
+  getRowHasChildren(row) {
+    if (!this.treeColumn) return;
     var children = this.rowsByGroup[row[this.treeColumn.prop]];
     return children !== undefined || (children && !children.length);
   }
@@ -483,11 +490,11 @@ export class BodyController{
    * @param  {row model}
    * @param  {cell model}
    */
-  onTreeToggled(row, cell){
-    var val  = row[this.treeColumn.prop];
+  onTreeToggled(row, cell) {
+    var val = row[this.treeColumn.prop];
     this.expanded[val] = !this.expanded[val];
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       this.getRows(true);
     } else {
       var values = this.buildTree();
@@ -505,10 +512,10 @@ export class BodyController{
    * Invoked when the row group directive was expanded
    * @param  {object} row
    */
-  onGroupToggle(row){
+  onGroupToggle(row) {
     this.expanded[row.name] = !this.expanded[row.name];
 
-    if(this.options.scrollbarV){
+    if (this.options.scrollbarV) {
       this.getRows(true);
     } else {
       var values = this.buildGroups();

@@ -14,7 +14,7 @@ module.exports = function (config) {
     browserify: {
       debug: true,
       transform: [
-        ['babelify', { stage: 0 }]
+        ['babelify']
       ]
     },
     customLaunchers: {
@@ -31,7 +31,7 @@ module.exports = function (config) {
     browserDisconnectTimeout: 20000
   };
 
-  if(process.env.TRAVIS){
+  if (process.env.TRAVIS) {
     configuration.browsers = ['ChromeTravis'];
     configuration.reporters = ['dots'];
   }

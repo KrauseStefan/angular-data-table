@@ -1,6 +1,6 @@
 import '../tests/frameworks';
-import {ObjectId} from '../utils/utils';
-import {DataTableService} from './DataTableService';
+import { ObjectId } from '../utils/utils';
+import { DataTableService } from './DataTableService';
 
 var mock = angular.mock;
 
